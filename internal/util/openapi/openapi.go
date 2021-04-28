@@ -18,12 +18,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-
 	"github.com/GoogleContainerTools/kpt/internal/util/openapi/augments"
 	jsonpatch "github.com/evanphx/json-patch/v5"
+	"io/ioutil"
 	"k8s.io/kubectl/pkg/cmd/util"
+	"net/http"
 	"sigs.k8s.io/kustomize/kyaml/openapi"
 	"sigs.k8s.io/kustomize/kyaml/openapi/kubernetesapi"
 	"sigs.k8s.io/kustomize/kyaml/openapi/kustomizationapi"
@@ -120,17 +119,18 @@ func GetJSONSchema() ([]byte, error) {
 
 func StartLocalServer() error {
 	http.HandleFunc("/OpenAPI", func(w http.ResponseWriter, r *http.Request){
-		//schema, err := GetJSONSchema()
-		//if err != nil {
-		//	fmt.Fprintf(w, "error getting schema: %w", err.Error())
-		//}
-		fmt.Fprintf(w, "hello!\n")
+		schema, err := GetJSONSchema()
+		if err != nil {
+			fmt.Fprintf(w, "error getting schema: %w", err.Error())
+		}
+		fmt.Println("endpoint hit: /OpenAPI")
+		fmt.Fprintf(w, string(schema))
 	})
 
 	var err error
-	go func() {
-		fmt.Printf("Starting server at port 8080\n")
-		err = http.ListenAndServe(":8080", nil)
+	go func () {
+		fmt.Println("starting server at port 8080\n")
+		err = http.ListenAndServe(":8080", nil) // set listen port
 	}()
 
 	return err
