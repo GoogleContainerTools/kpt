@@ -38,6 +38,7 @@ func ConfigureOpenAPI() error {
 }
 
 func ConfigureOpenAPISchema(openAPISchema []byte) error {
+	fmt.Println("configuring openapi schema")
 	openapi.SuppressBuiltInSchemaUse()
 	openAPISchema, err := addExtensionsToBuiltinTypes(openAPISchema)
 	if err != nil {
@@ -52,6 +53,9 @@ func ConfigureOpenAPISchema(openAPISchema []byte) error {
 
 // GetJSONSchema returns the JSON OpenAPI schema being used in kyaml
 func GetJSONSchema() ([]byte, error) {
+	if err := ConfigureOpenAPI(); err != nil {
+		return nil, err
+	}
 	schema := openapi.Schema()
 	if schema == nil {
 		return nil, nil
