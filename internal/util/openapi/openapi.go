@@ -20,6 +20,7 @@ import (
 	"github.com/GoogleContainerTools/kpt/internal/util/openapi/augments"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"net/http"
+	"runtime"
 	"sigs.k8s.io/kustomize/kyaml/openapi"
 	"sigs.k8s.io/kustomize/kyaml/openapi/kubernetesapi"
 	"sigs.k8s.io/kustomize/kyaml/openapi/kustomizationapi"
@@ -29,6 +30,8 @@ const (
 	BuiltinSchemaVersion = "v1204"
 	KubernetesAssetName  = "kubernetesapi/v1204/swagger.json"
 	KustomizeAssetName   = "kustomizationapi/swagger.json"
+
+    endpoint = "/openapi"
 )
 
 // ConfigureOpenAPI sets the openAPI schema in kyaml.
@@ -74,13 +77,25 @@ func GetJSONSchema() ([]byte, error) {
 	return output, nil
 }
 
+func ServerUrl() string {
+	var url string
+	fmt.Println("os is", runtime.GOOS)
+	switch runtime.GOOS {
+	case "linux":
+		url = "172.17.0.1"
+	default:
+		url = "host.docker.internal"
+	}
+	return fmt.Sprintf("http://%s:%s%s", url, "8080", endpoint)
+}
+
 func StartLocalServer() error {
-	http.HandleFunc("/OpenAPI", func(w http.ResponseWriter, r *http.Request){
+	http.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request){
 		schema, err := GetJSONSchema()
 		if err != nil {
 			fmt.Fprintf(w, "error getting schema: %w", err.Error())
 		}
-		fmt.Println("endpoint hit: /OpenAPI")
+		fmt.Printf("endpoint hit: %s\n", endpoint)
 		fmt.Fprintf(w, string(schema))
 	})
 
@@ -89,7 +104,6 @@ func StartLocalServer() error {
 		fmt.Println("starting server at port 8080\n")
 		err = http.ListenAndServe(":8080", nil) // set listen port
 	}()
-
 	return err
 }
 
