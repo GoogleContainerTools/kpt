@@ -18,6 +18,7 @@ import (
 	"context"
 	goerrors "errors"
 	"fmt"
+	"github.com/GoogleContainerTools/kpt/internal/util/openapi"
 	"io/ioutil"
 	"os"
 	"path"
@@ -54,6 +55,7 @@ func NewContainerRunner(
 	fltr := &runtimeutil.FunctionFilter{
 		Run:            cfn.Run,
 		FunctionConfig: config,
+		OpenApiUrl:     openapi.ServerUrl(),
 	}
 	fnResult := &fnresult.Result{
 		Image: f.Image,

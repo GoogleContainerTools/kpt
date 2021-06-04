@@ -111,10 +111,9 @@ func (f *ContainerFn) Run(reader io.Reader, writer io.Writer) error {
 }
 
 func (f *ContainerFn) getDockerCmd() (*exec.Cmd, context.CancelFunc) {
-	network := networkNameNone
-	if f.Perm.AllowNetwork {
-		network = networkNameHost
-	}
+
+	network := networkNameHost
+
 	uidgid := "nobody"
 	if f.UIDGID != "" {
 		uidgid = f.UIDGID
