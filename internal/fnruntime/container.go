@@ -20,6 +20,7 @@ import (
 	goerrors "errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -177,7 +178,6 @@ func (f *ContainerFn) prepareImage() error {
 	foundImageInLocalCache := false
 	args := []string{"image", "inspect", f.Image}
 	cmd := exec.Command(dockerBin, args...)
-	var output []byte
 	var err error
 	if _, err = cmd.CombinedOutput(); err == nil {
 		// image exists locally
@@ -206,11 +206,11 @@ func (f *ContainerFn) prepareImage() error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd = exec.CommandContext(ctx, dockerBin, args...)
-	output, err = cmd.CombinedOutput()
-	if err != nil {
+	cmd.Stdout = os.Stdout
+	if err := cmd.Run(); err != nil {
 		return &ContainerImageError{
 			Image:  f.Image,
-			Output: string(output),
+			Output: err.Error(),
 		}
 	}
 	return nil
