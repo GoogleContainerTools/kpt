@@ -23,7 +23,6 @@ on:
     branches:
       - next
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -41,3 +40,62 @@ jobs:
         git config --global user.name Your Name
         make all
         make test-docker
+    - name: "Upload Linux Binary"
+      uses: actions/upload-artifact@v2
+      with:
+        name: kpt-linux
+        path: kpt-linux
+        retention-days: 1
+    - name: "Upload Darwin (MacOS) Binary"
+      uses: actions/upload-artifact@v2
+      with:
+        name: kpt-darwin
+        path: kpt-darwin
+        retention-days: 1
+    # - name: "Upload Windows Binary"
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: kpt-windows.exe
+    #     path: kpt-windows.exe
+    #     retention-days: 1
+  
+  validate-binaries:
+    name: "Validate Binaries"
+    needs: "build"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Do not fail fast for validation. This gives us signals for all OS's.
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary: kpt-linux
+          - os: macos-latest
+            binary: kpt-darwin
+          # Uncomment to enable Windows testing
+          # - os: windows-latest
+          #   binary: kpt-windows.exe
+    steps:
+      - name: Download Binary
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.binary }}
+          path: "kpt"
+      # For linux builds allow execution of kpt
+      - name:  Install Kpt Binary
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p ${GITHUB_WORKSPACE}/bin
+          mv ./kpt/${{ matrix.binary }} ${GITHUB_WORKSPACE}/bin/kpt
+          chmod +x ${GITHUB_WORKSPACE}/bin/kpt
+      # Validate kpt installation
+      # If kpt installation fails there is no reason to setup go or run tests
+      - run: "kpt version"
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+        id: go
+      # Run kpt e2e tests.
+      # Note: current e2e tests require docker. Docker is not supported on MacOS
+      - run: go test -cover ./e2e
