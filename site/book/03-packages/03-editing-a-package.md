@@ -46,6 +46,15 @@ different toolchains and languages, as well as at levels of abstraction.
 For example, setting a label on all the resources in the `wordpress` package can be done
 using the following function:
 
+{{% hide %}}
+
+<!--@fnEval @verifyBook-->
+```shell
+kpt fn eval wordpress --image gcr.io/kpt-fn/set-labels:v0.1 -- env=dev
+```
+
+{{% /hide %}}
+
 ```shell
 $ kpt fn eval wordpress --image gcr.io/kpt-fn/set-labels:v0.1 -- env=dev
 ```

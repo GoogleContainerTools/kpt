@@ -17,6 +17,25 @@ and apply setters for individual packages.
 
 Get the example package on to local using `kpt pkg get`
 
+{{% hide %}}
+
+<!-- @makeWorkplace @verifyPkgExamples-->
+```
+# Set up workspace for the test.
+setupWorkspace
+
+# Create output file.
+createOutputFile
+```
+
+<!-- @pkgGet @verifyPkgExamples-->
+```shell
+kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/wordpress@next
+
+```
+
+{{% /hide %}}
+
 ```sh
 $ kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/wordpress@next
 
@@ -27,6 +46,26 @@ fetching package /package-examples/wordpress from https://github.com/GoogleConta
 
 List the package contents in a tree structure.
 
+{{% hide %}}
+
+<!-- @pkgTree @verifyPkgExamples-->
+```shell
+kpt pkg tree wordpress/ > output.txt
+expectedOutput "Package \"wordpress\"
+├── [Kptfile]  Kptfile wordpress
+├── [service.yaml]  Service wordpress
+├── deployment
+│   ├── [deployment.yaml]  Deployment wordpress
+│   └── [volume.yaml]  PersistentVolumeClaim wp-pv-claim
+└── Package \"mysql\"
+    ├── [Kptfile]  Kptfile mysql
+    ├── [deployment.yaml]  PersistentVolumeClaim mysql-pv-claim
+    ├── [deployment.yaml]  Deployment wordpress-mysql
+    └── [deployment.yaml]  Service wordpress-mysql"
+```
+
+{{% /hide %}}
+
 ```sh
 $ kpt pkg tree wordpress/
 
@@ -34,13 +73,13 @@ Package "wordpress"
 ├── [Kptfile]  Kptfile wordpress
 ├── [service.yaml]  Service wordpress
 ├── deployment
-│   ├── [deployment.yaml]  Deployment wordpress
-│   └── [volume.yaml]  PersistentVolumeClaim wp-pv-claim
+│   ├── [deployment.yaml]  Deployment wordpress
+│   └── [volume.yaml]  PersistentVolumeClaim wp-pv-claim
 └── Package "mysql"
-  ├── [Kptfile]  Kptfile mysql
-  ├── [deployment.yaml]  PersistentVolumeClaim mysql-pv-claim
-  ├── [deployment.yaml]  Deployment wordpress-mysql
-  └── [deployment.yaml]  Service wordpress-mysql
+    ├── [Kptfile]  Kptfile mysql
+    ├── [deployment.yaml]  PersistentVolumeClaim mysql-pv-claim
+    ├── [deployment.yaml]  Deployment wordpress-mysql
+    └── [deployment.yaml]  Service wordpress-mysql
 ```
 
 ### Configure namespace

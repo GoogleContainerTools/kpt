@@ -10,13 +10,38 @@ a _subpackage_.
 
 Let's take a look at the wordpress package as an example:
 
-```shell
-$ kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/wordpress@v0.3
+{{% hide %}}
+
+<!-- @makeWorkplace @verifyBook-->
+```
+# Set up workspace for the test.
+setupWorkspace
+
+# Create output file.
+createOutputFile
 ```
 
-View the package hierarchy using the `tree` command:
+<!-- @pkgGet @pkgTree @verifyBook-->
+```shell
+kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/wordpress@v0.3
+kpt pkg tree wordpress/ > output.txt
+expectedOutput "Package \"wordpress\"
+├── [Kptfile]  Kptfile wordpress
+├── [service.yaml]  Service wordpress
+├── deployment
+│   ├── [deployment.yaml]  Deployment wordpress
+│   └── [volume.yaml]  PersistentVolumeClaim wp-pv-claim
+└── Package \"mysql\"
+    ├── [Kptfile]  Kptfile mysql
+    ├── [deployment.yaml]  PersistentVolumeClaim mysql-pv-claim
+    ├── [deployment.yaml]  Deployment wordpress-mysql
+    └── [deployment.yaml]  Service wordpress-mysql"
+```
+
+{{% /hide %}}
 
 ```shell
+$ kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/wordpress@v0.3
 $ kpt pkg tree wordpress/
 Package "wordpress"
 ├── [Kptfile]  Kptfile wordpress
@@ -65,6 +90,15 @@ upstream repo. This means that kpt is compatible with large corpus of existing
 Kubernetes configuration stored on Git today!
 
 For example, `cockroachdb` is just a vanilla directory of KRM:
+
+{{% hide %}}
+
+<!--@pkgGet @verifyBook-->
+```shell
+kpt pkg get https://github.com/kubernetes/examples/staging/cockroachdb
+```
+
+{{% /hide %}}
 
 ```shell
 $ kpt pkg get https://github.com/kubernetes/examples/staging/cockroachdb

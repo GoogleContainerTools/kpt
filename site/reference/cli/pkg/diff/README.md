@@ -107,12 +107,10 @@ KPT_CACHE_DIR:
 
 ```
 # Set up workspace for the test.
-TEST_HOME=$(mktemp -d)
-cd $TEST_HOME
+setupWorkspace
 ```
 
-<!-- @fetchPackage @verifyExamples-->
-
+<!-- @pkgGet @verifyExamples-->
 ```shell
 export SRC_REPO=https://github.com/GoogleContainerTools/kpt.git
 kpt pkg get $SRC_REPO/package-examples/helloworld-set@next hello-world
@@ -122,6 +120,7 @@ cd hello-world
 {{% /hide %}}
 
 <!--mdtogo:Examples-->
+
 <!-- @pkgDiff @verifyExamples-->
 
 ```shell

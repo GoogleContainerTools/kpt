@@ -21,4 +21,10 @@ set -o pipefail
 mdrip -alsologtostderr -v 10 --blockTimeOut 20m0s --mode test \
     --label verifyExamples site/reference
 
+mdrip -alsologtostderr -v 10 --blockTimeOut 20m0s --mode test \
+    --label verifyBook site/book/
+
+mdrip -alsologtostderr -v 10 --blockTimeOut 20m0s --mode test \
+    --label verifyPkgExamples package-examples/
+
 echo "Success"

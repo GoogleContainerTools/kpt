@@ -13,6 +13,23 @@ doesn't do anything beyond declaring the current directory as a `kpt` package.
 
 Get the example package on to local using `kpt pkg get`
 
+{{% hide %}}
+
+<!-- @makeWorkplace @verifyPkgExamples-->
+```
+# Set up workspace for the test.
+setupWorkspace
+
+# Create output file.
+createOutputFile
+```
+<!-- @pkgGet @verifyPkgExamples-->
+```shell
+kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/helloworld
+```
+
+{{% /hide %}}
+
 ```shell
 $ kpt pkg get https://github.com/GoogleContainerTools/kpt.git/package-examples/helloworld@next
 
@@ -22,6 +39,20 @@ fetching package /package-examples/helloworld from https://github.com/GoogleCont
 ### View the package contents
 
 List the package contents in a tree structure.
+
+
+{{% hide %}}
+
+<!-- @pkgTree @verifyPkgExamples-->
+```shell
+kpt pkg tree helloworld/ > output.txt
+expectedOutput "Package \"helloworld\"
+├── [Kptfile]  Kptfile helloworld
+├── [deploy.yaml]  Deployment helloworld-gke
+└── [service.yaml]  Service helloworld-gke"
+```
+
+{{% /hide %}}
 
 ```shell
 $ kpt pkg tree helloworld/

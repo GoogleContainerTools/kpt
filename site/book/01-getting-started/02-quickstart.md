@@ -8,20 +8,47 @@ package of configuration using the underlying Git version control system.
 
 First, let's fetch the _kpt package_ from Git to your local filesystem:
 
-```shell
-$ kpt pkg get https://github.com/GoogleContainerTools/kpt/package-examples/nginx@v0.4
+{{% hide %}}
+
+<!-- @makeWorkplace @verifyBook-->
+```
+# Set up workspace for the test.
+setupWorkspace
+
+# Create output file.
+createOutputFile
 ```
 
-Subsequent commands are run from the `nginx` directory:
+<!-- @pkgGet @verifyBook-->
+```shell
+kpt pkg get https://github.com/GoogleContainerTools/kpt/package-examples/nginx@v0.4
+cd nginx
+```
+
+{{% /hide %}}
 
 ```shell
+$ kpt pkg get https://github.com/GoogleContainerTools/kpt/package-examples/nginx@v0.4
 $ cd nginx
 ```
 
-`kpt pkg` commands provide the functionality for working with packages on Git
-and on your local filesystem.
+`kpt pkg` commands provide the functionality for working with packages on Git and on your local
+filesystem.
 
 Next, let's quickly view the content of the package:
+
+{{% hide %}}
+
+<!-- @pkgTree @verifyBook-->
+```shell
+kpt pkg tree > output.txt
+expectedOutput "Package \"nginx\"
+├── [Kptfile]  Kptfile nginx
+├── [deployment.yaml]  Deployment my-nginx
+└── [svc.yaml]  Service my-nginx-svc"
+```
+
+{{% /hide %}}
 
 ```shell
 $ kpt pkg tree
@@ -31,9 +58,9 @@ Package "nginx"
 └── [svc.yaml]  Service my-nginx-svc
 ```
 
-As you can see, this package contains 3 resources in 3 files. There is a special
-file named `Kptfile` which is used by the kpt tool itself and is not deployed to
-the cluster. Later chapters will explain the `Kptfile` in detail.
+As you can see, this package contains 3 resources in 3 files. There is a special file named
+`Kptfile` which is used by the kpt tool itself and is not deployed to the cluster. Later chapters
+will explain the `Kptfile` in detail.
 
 Initialize a local Git repo and commit the forked copy of the package:
 
@@ -57,6 +84,15 @@ Often, you want to automatically mutate and/or validate resources in a package.
 `kpt fn` commands enable you to execute programs called _kpt functions_. For
 instance, you can automatically search and replace all the occurrences of `app`
 name on resources in the package using path expressions:
+
+{{% hide %}}
+
+<!--@fnEval @verifyBook-->
+```shell
+kpt fn eval --image gcr.io/kpt-fn/search-replace:v0.1 -- 'by-path=spec.**.app' 'put-value=my-nginx'
+```
+
+{{% /hide %}}
 
 ```shell
 $ kpt fn eval --image gcr.io/kpt-fn/search-replace:v0.1 -- 'by-path=spec.**.app' 'put-value=my-nginx'
@@ -86,6 +122,15 @@ This function will ensure that the label `env: dev` is added to all the
 resources in the package.
 
 The pipeline is executed using the `render` command:
+
+{{% hide %}}
+
+<!--@fnRender @verifyBook-->
+```shell
+kpt fn render
+```
+
+{{% /hide %}}
 
 ```shell
 $ kpt fn render
