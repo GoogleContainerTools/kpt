@@ -15,7 +15,7 @@ import (
 )
 
 func TestSinkCommand(t *testing.T) {
-	d, err := ioutil.TempDir("", "source-test")
+	d, err := ioutil.TempDir("", "sink-test")
 	if !assert.NoError(t, err) {
 		t.FailNow()
 	}
@@ -25,7 +25,8 @@ func TestSinkCommand(t *testing.T) {
 	r.Command.SetIn(bytes.NewBufferString(`apiVersion: config.kubernetes.io/v1alpha1
 kind: ResourceList
 items:
-- kind: Deployment
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     labels:
       app: nginx2
@@ -36,7 +37,8 @@ items:
       config.kubernetes.io/path: 'f1.yaml'
   spec:
     replicas: 1
-- kind: Service
+- apiVersion: v1
+  kind: Service
   metadata:
     name: foo
     annotations:
@@ -81,7 +83,8 @@ items:
 	if !assert.NoError(t, err) {
 		t.FailNow()
 	}
-	expected := `kind: Deployment
+	expected := `apiVersion: apps/v1
+kind: Deployment
 metadata:
   labels:
     app: nginx2
@@ -91,6 +94,7 @@ metadata:
 spec:
   replicas: 1
 ---
+apiVersion: v1
 kind: Service
 metadata:
   name: foo
@@ -137,7 +141,7 @@ spec:
 }
 
 func TestSinkCommandJSON(t *testing.T) {
-	d, err := ioutil.TempDir("", "source-test")
+	d, err := ioutil.TempDir("", "sink-test")
 	if !assert.NoError(t, err) {
 		t.FailNow()
 	}
@@ -147,7 +151,7 @@ func TestSinkCommandJSON(t *testing.T) {
 	r.Command.SetIn(bytes.NewBufferString(`apiVersion: config.kubernetes.io/v1alpha1
 kind: ResourceList
 items:
-- {"kind": "Deployment", "metadata": {"labels": {"app": "nginx2"}, "name": "foo",
+- {"apiVersion": "apps/v1", "kind": "Deployment", "metadata": {"labels": {"app": "nginx2"}, "name": "foo",
     "annotations": {"app": "nginx2", config.kubernetes.io/index: '0',
       config.kubernetes.io/path: 'f1.json'}}, "spec": {"replicas": 1}}
 `))
@@ -161,6 +165,7 @@ items:
 		t.FailNow()
 	}
 	expected := `{
+  "apiVersion": "apps/v1",
   "kind": "Deployment",
   "metadata": {
     "annotations": {
@@ -179,4 +184,33 @@ items:
 	if !assert.Equal(t, expected, string(actual)) {
 		t.FailNow()
 	}
+}
+func TestSinkCommandNonKrm(t *testing.T) {
+	d, err := ioutil.TempDir("", "sink-test")
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+	defer os.RemoveAll(d)
+
+	r := GetSinkRunner(fake.CtxWithDefaultPrinter(), "")
+	r.Command.SetIn(bytes.NewBufferString(`apiVersion: config.kubernetes.io/v1alpha1
+kind: ResourceList
+items:
+- kind: Deployment
+  metadata:
+    labels:
+      app: nginx2
+    annotations:
+      app: nginx2
+      config.kubernetes.io/index: '0'
+      config.kubernetes.io/path: 'f1.yaml'
+  spec:
+    replicas: 1
+`))
+	r.Command.SetArgs([]string{d})
+	err = r.Command.Execute()
+	if !assert.Error(t, err) {
+		t.FailNow()
+	}
+	assert.Equal(t, "f1.yaml: resource must have `apiVersion`", err.Error())
 }

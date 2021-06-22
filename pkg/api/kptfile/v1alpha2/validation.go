@@ -186,8 +186,8 @@ func IsKRM(n *yaml.RNode) error {
 
 func AreKRM(nodes []*yaml.RNode) error {
 	for i := range nodes {
+		path, _, _ := kioutil.GetFileAnnotations(nodes[i])
 		if err := IsKRM(nodes[i]); err != nil {
-			path, _, _ := kioutil.GetFileAnnotations(nodes[i])
 			return fmt.Errorf("%s: %s", path, err.Error())
 		}
 	}

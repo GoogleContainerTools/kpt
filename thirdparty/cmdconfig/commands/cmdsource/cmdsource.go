@@ -121,6 +121,11 @@ func (r *SourceRunner) runE(c *cobra.Command, args []string) error {
 		})
 	}
 
-	err := kio.Pipeline{Inputs: inputs, Outputs: outputs}.Execute()
+	err := kio.Pipeline{
+		Inputs:  inputs,
+		Outputs: outputs,
+		Filters: []kio.Filter{kio.FilterFunc(cmdutil.AreKrmFilter)},
+	}.Execute()
+
 	return runner.HandleError(r.Ctx, err)
 }

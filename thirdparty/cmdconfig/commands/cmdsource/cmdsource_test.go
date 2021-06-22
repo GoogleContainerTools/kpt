@@ -22,6 +22,7 @@ func TestSourceCommand(t *testing.T) {
 	defer os.RemoveAll(d)
 
 	err = ioutil.WriteFile(filepath.Join(d, "f1.yaml"), []byte(`
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -32,6 +33,7 @@ metadata:
 spec:
   replicas: 1
 ---
+apiVersion: v1
 kind: Service
 metadata:
   name: foo
@@ -83,7 +85,8 @@ spec:
 	if !assert.Equal(t, `apiVersion: config.kubernetes.io/v1alpha1
 kind: ResourceList
 items:
-  - kind: Deployment
+  - apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: nginx2
@@ -94,7 +97,8 @@ items:
         config.kubernetes.io/path: 'f1.yaml'
     spec:
       replicas: 1
-  - kind: Service
+  - apiVersion: v1
+    kind: Service
     metadata:
       name: foo
       annotations:
@@ -142,6 +146,7 @@ func TestSourceCommand_Unwrap(t *testing.T) {
 	defer os.RemoveAll(d)
 
 	err = ioutil.WriteFile(filepath.Join(d, "f1.yaml"), []byte(`
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -152,6 +157,7 @@ metadata:
 spec:
   replicas: 1
 ---
+apiVersion: v1
 kind: Service
 metadata:
   name: foo
@@ -195,7 +201,8 @@ spec:
 		return
 	}
 
-	if !assert.Equal(t, `kind: Deployment
+	if !assert.Equal(t, `apiVersion: apps/v1
+kind: Deployment
 metadata:
   labels:
     app: nginx2
@@ -205,6 +212,7 @@ metadata:
 spec:
   replicas: 1
 ---
+apiVersion: v1
 kind: Service
 metadata:
   name: foo
@@ -279,6 +287,7 @@ func TestSourceCommand_DefaultDir(t *testing.T) {
 	defer os.RemoveAll(d)
 
 	err = ioutil.WriteFile(filepath.Join(d, "f1.yaml"), []byte(`
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -289,6 +298,7 @@ metadata:
 spec:
   replicas: 1
 ---
+apiVersion: v1
 kind: Service
 metadata:
   name: foo
@@ -345,7 +355,8 @@ spec:
 	if !assert.Equal(t, `apiVersion: config.kubernetes.io/v1alpha1
 kind: ResourceList
 items:
-  - kind: Deployment
+  - apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: nginx2
@@ -356,7 +367,8 @@ items:
         config.kubernetes.io/path: 'f1.yaml'
     spec:
       replicas: 1
-  - kind: Service
+  - apiVersion: v1
+    kind: Service
     metadata:
       name: foo
       annotations:
@@ -405,6 +417,7 @@ func TestSourceCommandJSON(t *testing.T) {
 
 	err = ioutil.WriteFile(filepath.Join(d, "f1.json"), []byte(`
 {
+  "apiVersion": "apps/v1",
   "kind": "Deployment",
   "metadata": {
     "labels": {
@@ -456,11 +469,48 @@ func TestSourceCommandJSON(t *testing.T) {
 	expected := `apiVersion: config.kubernetes.io/v1alpha1
 kind: ResourceList
 items:
-  - {"kind": "Deployment", "metadata": {"labels": {"app": "nginx2"}, "name": "foo", "annotations": {"app": "nginx2", config.kubernetes.io/index: '0', config.kubernetes.io/path: 'f1.json'}}, "spec": {"replicas": 1}}
+  - {"apiVersion": "apps/v1", "kind": "Deployment", "metadata": {"labels": {"app": "nginx2"}, "name": "foo", "annotations": {"app": "nginx2", config.kubernetes.io/index: '0', config.kubernetes.io/path: 'f1.json'}}, "spec": {"replicas": 1}}
   - {"apiVersion": "v1", "kind": "Abstraction", "metadata": {"name": "foo", "annotations": {"config.kubernetes.io/function": "container:\n  image: gcr.io/example/reconciler:v1\n", "config.kubernetes.io/local-config": "true", config.kubernetes.io/index: '0', config.kubernetes.io/path: 'f2.json'}}, "spec": {"replicas": 3}}
 `
 
 	if !assert.Equal(t, expected, b.String()) {
 		return
 	}
+}
+
+func TestSourceCommandNonKrm(t *testing.T) {
+	d, err := ioutil.TempDir("", "source-test")
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer os.RemoveAll(d)
+
+	err = ioutil.WriteFile(filepath.Join(d, "f1.yaml"), []byte(`
+apiVersion: v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx2
+  name: foo
+  annotations:
+    app: nginx2
+spec:
+  replicas: 1
+---
+apiVersion: v1
+kind: Custom
+`), 0600)
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	// fmt the files
+	b := &bytes.Buffer{}
+	r := GetSourceRunner(fake.CtxWithPrinter(b, nil), "")
+	r.Command.SetArgs([]string{d})
+	err = r.Command.Execute()
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Equal(t, "f1.yaml: resource must have `metadata.name`", err.Error())
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/GoogleContainerTools/kpt/internal/docs/generated/fndocs"
 	"github.com/GoogleContainerTools/kpt/internal/pkg"
+	"github.com/GoogleContainerTools/kpt/internal/util/cmdutil"
 	"github.com/GoogleContainerTools/kpt/thirdparty/cmdconfig/commands/runner"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/kio"
@@ -45,9 +46,10 @@ func (r *SinkRunner) runE(c *cobra.Command, args []string) error {
 		dir = args[0]
 	}
 	outputs := []kio.Writer{&kio.LocalPackageWriter{PackagePath: dir}}
-
 	err := kio.Pipeline{
 		Inputs:  []kio.Reader{&kio.ByteReader{Reader: c.InOrStdin()}},
-		Outputs: outputs}.Execute()
+		Outputs: outputs,
+		Filters: []kio.Filter{kio.FilterFunc(cmdutil.AreKrmFilter)},
+	}.Execute()
 	return runner.HandleError(r.Ctx, err)
 }
